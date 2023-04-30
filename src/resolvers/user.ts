@@ -92,5 +92,38 @@ export class UserResolver {
             user
         };
     }
+
+    @Mutation(() => UserResponse)
+    async login(
+        @Arg('options') options: UsernamePasswordInput,
+        @Ctx() { em }: MyContext
+    ): Promise<UserResponse> {
+        const user = await em.findOne(User, { username: options.username.toLowerCase() });
+        if (!user) {
+            return {
+                errors: [
+                    { 
+                        field: 'username',
+                        message: 'that username does not exist'
+                    },
+                ],
+            };
+        }
+
+        const validPassword = await bcrypt.compare(options.password, user.password);
+        if (!validPassword) {
+            return {
+                errors: [
+                    {
+                        field: 'password',
+                        message: 'incorrect password'
+                    },
+                ],
+            };
+        }
+
+        return {
+            user,
+        };
     }
 }
