@@ -29,6 +29,7 @@ const main = async () => {
             origin: [
                 'https://sandbox.embed.apollographql.com',
                 'http://localhost:4000/graphql',
+                'http://localhost:3000'
             ],
             credentials: true,
         })
@@ -66,7 +67,7 @@ const main = async () => {
 
     app.use(
         '/graphql',
-        cors<cors.CorsRequest>(),
+        cors<cors.CorsRequest>({ origin: 'http://localhost:3000' }),
         json(),
         expressMiddleware(apolloServer, {
             context: async ({ res, req }) => ({
