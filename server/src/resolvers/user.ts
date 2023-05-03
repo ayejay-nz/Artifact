@@ -1,8 +1,17 @@
-import { User } from "../entities/User";
-import { MyContext } from "../types";
-import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver } from "type-graphql";
+import { User } from '../entities/User';
+import { MyContext } from '../types';
+import {
+    Arg,
+    Ctx,
+    Field,
+    InputType,
+    Mutation,
+    ObjectType,
+    Query,
+    Resolver,
+} from 'type-graphql';
 import bcrypt from 'bcrypt';
-import { RequiredEntityData } from "@mikro-orm/core";
+import { RequiredEntityData } from '@mikro-orm/core';
 
 const hashingRounds = 12;
 const minUsernameLength = 3;
@@ -23,24 +32,22 @@ class FieldError {
     field: string;
 
     @Field()
-    message:string;
+    message: string;
 }
 
 @ObjectType()
 class UserResponse {
-    @Field(() => [FieldError], {nullable: true})
+    @Field(() => [FieldError], { nullable: true })
     errors?: FieldError[];
 
-    @Field(() => User, {nullable: true})
+    @Field(() => User, { nullable: true })
     user?: User;
 }
 
 @Resolver()
 export class UserResolver {
     @Query(() => User, { nullable: true })
-    me(
-        @Ctx() { em, req }: MyContext
-    ) {
+    me(@Ctx() { em, req }: MyContext) {
         // you are not logged in
         if (!req.session.userID) {
             return null;
@@ -61,7 +68,7 @@ export class UserResolver {
                 errors: [
                     {
                         field: 'username',
-                        message: `length must be at least ${minUsernameLength}`
+                        message: `length must be at least ${minUsernameLength}`,
                     },
                 ],
             };
@@ -72,30 +79,32 @@ export class UserResolver {
                 errors: [
                     {
                         field: 'password',
-                        message: `length must be at least ${minPasswordLength}`
+                        message: `length must be at least ${minPasswordLength}`,
                     },
                 ],
             };
         }
 
-        const hashedPassword = await bcrypt.hash(options.password, hashingRounds);
+        const hashedPassword = await bcrypt.hash(
+            options.password,
+            hashingRounds
+        );
 
-        const user = em.create(User, { 
+        const user = em.create(User, {
             username: options.username,
-            password: hashedPassword
+            password: hashedPassword,
         } as RequiredEntityData<User>);
 
         try {
             await em.persistAndFlush(user);
-        }
-        catch (err) {
+        } catch (err) {
             // duplicate username error
             if (err.code === '23505') {
                 return {
                     errors: [
                         {
                             field: 'username',
-                            message: 'username already taken'
+                            message: 'username already taken',
                         },
                     ],
                 };
@@ -103,7 +112,7 @@ export class UserResolver {
         }
 
         return {
-            user
+            user,
         };
     }
 
@@ -112,25 +121,30 @@ export class UserResolver {
         @Arg('options') options: UsernamePasswordInput,
         @Ctx() { em, req }: MyContext
     ): Promise<UserResponse> {
-        const user = await em.findOne(User, { username: options.username.toLowerCase() });
+        const user = await em.findOne(User, {
+            username: options.username.toLowerCase(),
+        });
         if (!user) {
             return {
                 errors: [
-                    { 
+                    {
                         field: 'username',
-                        message: 'that username does not exist'
+                        message: 'that username does not exist',
                     },
                 ],
             };
         }
 
-        const validPassword = await bcrypt.compare(options.password, user.password);
+        const validPassword = await bcrypt.compare(
+            options.password,
+            user.password
+        );
         if (!validPassword) {
             return {
                 errors: [
                     {
                         field: 'password',
-                        message: 'incorrect password'
+                        message: 'incorrect password',
                     },
                 ],
             };

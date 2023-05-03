@@ -1,14 +1,12 @@
-import { MyContext } from "../types";
-import { Post } from "../entities/Post";
-import { Arg, Ctx, Query, Resolver, Mutation } from "type-graphql";
-import { RequiredEntityData } from "@mikro-orm/core";
+import { MyContext } from '../types';
+import { Post } from '../entities/Post';
+import { Arg, Ctx, Query, Resolver, Mutation } from 'type-graphql';
+import { RequiredEntityData } from '@mikro-orm/core';
 
 @Resolver()
 export class PostResolver {
     @Query(() => [Post])
-    posts(
-        @Ctx() { em }: MyContext
-    ): Promise<Post[]> {
+    posts(@Ctx() { em }: MyContext): Promise<Post[]> {
         return em.find(Post, {});
     }
 
@@ -25,8 +23,8 @@ export class PostResolver {
         @Arg('title') title: string,
         @Ctx() { em }: MyContext
     ): Promise<Post> {
-        const post = em.create(Post, { 
-            title
+        const post = em.create(Post, {
+            title,
         } as RequiredEntityData<Post>);
 
         await em.persistAndFlush(post);
@@ -43,7 +41,7 @@ export class PostResolver {
         if (!post) {
             return null;
         }
-        
+
         if (typeof title !== 'undefined') {
             post.title = title;
             await em.persistAndFlush(post);
@@ -59,8 +57,7 @@ export class PostResolver {
     ): Promise<boolean> {
         try {
             await em.nativeDelete(Post, { id });
-        }
-        catch {
+        } catch {
             return false;
         }
         return true;

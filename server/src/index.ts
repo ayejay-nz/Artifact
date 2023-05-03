@@ -27,12 +27,12 @@ const main = async () => {
     app.use(
         cors({
             origin: [
-                "https://sandbox.embed.apollographql.com",
-                "http://localhost:4000/graphql",
+                'https://sandbox.embed.apollographql.com',
+                'http://localhost:4000/graphql',
             ],
             credentials: true,
         })
-    );    
+    );
 
     app.use(
         session({
@@ -51,7 +51,7 @@ const main = async () => {
             resave: false,
             saveUninitialized: false,
         })
-    )
+    );
 
     const schema = await buildSchema({
         resolvers: [HelloResolver, PostResolver, UserResolver],
@@ -65,16 +65,16 @@ const main = async () => {
     await apolloServer.start();
 
     app.use(
-        '/graphql',      
-        cors<cors.CorsRequest>(),      
-        json(),      
-        expressMiddleware(apolloServer, {      
-            context: async ({ res, req }) => ({ 
+        '/graphql',
+        cors<cors.CorsRequest>(),
+        json(),
+        expressMiddleware(apolloServer, {
+            context: async ({ res, req }) => ({
                 em: emFork,
                 req,
                 res,
-             }),      
-        }),      
+            }),
+        })
     );
 
     app.listen(4000, () => {
