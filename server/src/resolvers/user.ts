@@ -61,14 +61,14 @@ export class UserResolver {
     @Mutation(() => UserResponse)
     async register(
         @Arg('options') options: UsernamePasswordInput,
-        @Ctx() { em }: MyContext
+        @Ctx() { em, req }: MyContext
     ): Promise<UserResponse> {
         if (options.username.length < minUsernameLength) {
             return {
                 errors: [
                     {
                         field: 'username',
-                        message: `length must be at least ${minUsernameLength}`,
+                        message: `Username must be at least ${minUsernameLength} characters long`,
                     },
                 ],
             };
@@ -79,7 +79,7 @@ export class UserResolver {
                 errors: [
                     {
                         field: 'password',
-                        message: `length must be at least ${minPasswordLength}`,
+                        message: `Password must be at least ${minPasswordLength} characters long`,
                     },
                 ],
             };
@@ -104,12 +104,14 @@ export class UserResolver {
                     errors: [
                         {
                             field: 'username',
-                            message: 'username already taken',
+                            message: 'Username already taken',
                         },
                     ],
                 };
             }
         }
+
+        req.session.userID = user.id;
 
         return {
             user,
@@ -158,13 +160,11 @@ export class UserResolver {
     }
 
     @Mutation(() => Boolean)
-    async logout(
-        @Ctx() { res, req }: MyContext 
-     ) {
+    async logout(@Ctx() { res, req }: MyContext) {
         return new Promise((resolve) => {
             req.session.destroy((err) => {
                 res.clearCookie('qid');
-                
+
                 if (err) {
                     console.log(err);
                     resolve(false);
@@ -172,7 +172,7 @@ export class UserResolver {
                 }
 
                 resolve(true);
-            })
+            });
         });
-    };
+    }
 }
