@@ -10,7 +10,7 @@ import {
 } from '@chakra-ui/react';
 import { Wrapper } from '../components/Wrapper';
 import { InputField } from '../components/InputField';
-import { useRegisterMutation } from '../generated/graphql';
+import { MeDocument, MeQuery, useRegisterMutation } from '../generated/graphql';
 import { toErrorMap } from '../utils/toErrorMap';
 import { useRouter } from 'next/router';
 
@@ -26,6 +26,15 @@ const Register: React.FC<registerProps> = ({}) => {
                 onSubmit={async (values, { setErrors }) => {
                     const response = await registerMutation({
                         variables: values,
+                        update: (cache, { data }) => {
+                            cache.writeQuery<MeQuery>({
+                                query: MeDocument,
+                                data: {
+                                    __typename: 'Query',
+                                    me: data?.register.user,
+                                },
+                            });
+                        },
                     });
 
                     if (response.data?.register.errors) {
