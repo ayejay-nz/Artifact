@@ -97,6 +97,28 @@ export type UsernamePasswordInput = {
     username: Scalars['String'];
 };
 
+export type RegularErrorFragment = {
+    __typename?: 'FieldError';
+    field: string;
+    message: string;
+};
+
+export type RegularUserFragment = {
+    __typename?: 'User';
+    id: number;
+    username: string;
+};
+
+export type RegularUserResponseFragment = {
+    __typename?: 'UserResponse';
+    errors?: Array<{
+        __typename?: 'FieldError';
+        field: string;
+        message: string;
+    }> | null;
+    user?: { __typename?: 'User'; id: number; username: string } | null;
+};
+
 export type LoginMutationVariables = Exact<{
     username: Scalars['String'];
     password: Scalars['String'];
@@ -129,13 +151,7 @@ export type RegisterMutation = {
             field: string;
             message: string;
         }> | null;
-        user?: {
-            __typename?: 'User';
-            id: number;
-            username: string;
-            createdAt: string;
-            updatedAt: string;
-        } | null;
+        user?: { __typename?: 'User'; id: number; username: string } | null;
     };
 };
 
@@ -146,19 +162,37 @@ export type MeQuery = {
     me?: { __typename?: 'User'; id: number; username: string } | null;
 };
 
+export const RegularErrorFragmentDoc = gql`
+    fragment RegularError on FieldError {
+        field
+        message
+    }
+`;
+export const RegularUserFragmentDoc = gql`
+    fragment RegularUser on User {
+        id
+        username
+    }
+`;
+export const RegularUserResponseFragmentDoc = gql`
+    fragment RegularUserResponse on UserResponse {
+        errors {
+            ...RegularError
+        }
+        user {
+            ...RegularUser
+        }
+    }
+    ${RegularErrorFragmentDoc}
+    ${RegularUserFragmentDoc}
+`;
 export const LoginDocument = gql`
     mutation Login($username: String!, $password: String!) {
         login(options: { username: $username, password: $password }) {
-            errors {
-                field
-                message
-            }
-            user {
-                id
-                username
-            }
+            ...RegularUserResponse
         }
     }
+    ${RegularUserResponseFragmentDoc}
 `;
 export type LoginMutationFn = Apollo.MutationFunction<
     LoginMutation,
@@ -204,18 +238,10 @@ export type LoginMutationOptions = Apollo.BaseMutationOptions<
 export const RegisterDocument = gql`
     mutation Register($username: String!, $password: String!) {
         register(options: { username: $username, password: $password }) {
-            errors {
-                field
-                message
-            }
-            user {
-                id
-                username
-                createdAt
-                updatedAt
-            }
+            ...RegularUserResponse
         }
     }
+    ${RegularUserResponseFragmentDoc}
 `;
 export type RegisterMutationFn = Apollo.MutationFunction<
     RegisterMutation,
@@ -261,10 +287,10 @@ export type RegisterMutationOptions = Apollo.BaseMutationOptions<
 export const MeDocument = gql`
     query Me {
         me {
-            id
-            username
+            ...RegularUser
         }
     }
+    ${RegularUserFragmentDoc}
 `;
 
 /**
