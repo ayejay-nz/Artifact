@@ -12,6 +12,7 @@ import {
 } from 'type-graphql';
 import bcrypt from 'bcrypt';
 import { RequiredEntityData } from '@mikro-orm/core';
+import { COOKIE_NAME } from '../constants';
 
 const hashingRounds = 12;
 const minUsernameLength = 3;
@@ -163,7 +164,7 @@ export class UserResolver {
     async logout(@Ctx() { res, req }: MyContext) {
         return new Promise((resolve) => {
             req.session.destroy((err) => {
-                res.clearCookie('qid');
+                res.clearCookie(COOKIE_NAME);
 
                 if (err) {
                     console.log(err);

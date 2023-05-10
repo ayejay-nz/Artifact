@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { MikroORM } from '@mikro-orm/core';
-import { __prod__ } from './constants';
+import { COOKIE_NAME, __prod__ } from './constants';
 import microConfig from './mikro-orm.config';
 import express from 'express';
 import { ApolloServer } from '@apollo/server';
@@ -29,7 +29,7 @@ const main = async () => {
             origin: [
                 'https://sandbox.embed.apollographql.com',
                 'http://localhost:4000/graphql',
-                'http://localhost:3000'
+                'http://localhost:3000',
             ],
             credentials: true,
         })
@@ -37,7 +37,7 @@ const main = async () => {
 
     app.use(
         session({
-            name: 'qid',
+            name: COOKIE_NAME,
             store: new RedisStore({
                 client: redis,
                 disableTouch: true,

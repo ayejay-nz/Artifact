@@ -1,11 +1,17 @@
 import React from 'react';
 import { Box, Button, Flex, Link } from '@chakra-ui/react';
 import NextLink from 'next/link';
-import { useMeQuery } from '../generated/graphql';
+import {
+    MeDocument,
+    MeQuery,
+    useLogoutMutation,
+    useMeQuery,
+} from '../generated/graphql';
 
 interface NavBarProps {}
 
 export const NavBar: React.FC<NavBarProps> = ({}) => {
+    const [logoutMutation, { loading: logoutLoading }] = useLogoutMutation();
     const { data, loading } = useMeQuery();
     let body = null;
 
@@ -30,7 +36,17 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
         body = (
             <Flex>
                 <Box mr={2}>{data.me.username}</Box>
-                <Button variant={'link'}>Logout</Button>
+                <Button
+                    onClick={async () => {
+                        await logoutMutation();
+                        //TODO: refresh cache rather than windows by accessing apolloClient through props
+                        await window.location.reload();
+                    }}
+                    isLoading={logoutLoading}
+                    variant={'link'}
+                >
+                    Logout
+                </Button>
             </Flex>
         );
     }
