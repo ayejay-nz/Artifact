@@ -1,7 +1,5 @@
+import { MIN_PASSWORD_LENGTH, MIN_USERNAME_LENGTH } from '../constants';
 import { UsernamePasswordInput } from '../resolvers/UsernamePasswordInput';
-
-const minUsernameLength = 3;
-const minPasswordLength = 10;
 
 export const validateRegister = (options: UsernamePasswordInput) => {
     if (!options.email.includes('@')) {
@@ -13,11 +11,11 @@ export const validateRegister = (options: UsernamePasswordInput) => {
         ];
     }
 
-    if (options.username.length < minUsernameLength) {
+    if (options.username.length < MIN_USERNAME_LENGTH) {
         return [
             {
                 field: 'username',
-                message: `Username must be at least ${minUsernameLength} characters long`,
+                message: `Username must be at least ${MIN_USERNAME_LENGTH} characters long`,
             },
         ];
     }
@@ -31,11 +29,11 @@ export const validateRegister = (options: UsernamePasswordInput) => {
         ];
     }
 
-    if (options.password.length < minPasswordLength) {
+    if (options.password.length < MIN_PASSWORD_LENGTH) {
         return [
             {
                 field: 'password',
-                message: `Password must be at least ${minPasswordLength} characters long`,
+                message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters long`,
             },
         ];
     }

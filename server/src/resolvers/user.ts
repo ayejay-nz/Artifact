@@ -10,7 +10,11 @@ import {
     Resolver,
 } from 'type-graphql';
 import bcrypt from 'bcrypt';
-import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from '../constants';
+import {
+    COOKIE_NAME,
+    FORGET_PASSWORD_PREFIX,
+    MIN_PASSWORD_LENGTH,
+} from '../constants';
 import { validateRegister } from '../utils/validRegister';
 import { UsernamePasswordInput } from './UsernamePasswordInput';
 import { sendEmail } from '../utils/sendEmail';
@@ -38,6 +42,67 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+    @Mutation(() => UserResponse)
+    async changePassword(
+        @Arg('token') token: string,
+        @Arg('newPassword') newPassword: string,
+        @Ctx() { req, redis }: MyContext
+    ): Promise<UserResponse> {
+        if (newPassword.length < MIN_PASSWORD_LENGTH) {
+            return {
+                errors: [
+                    {
+                        field: 'newPassword',
+                        message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters long`,
+                    },
+                ],
+            };
+        }
+
+        const key = FORGET_PASSWORD_PREFIX + token;
+        const userID = await redis.get(key);
+
+        if (!userID) {
+            return {
+                errors: [
+                    {
+                        field: 'token',
+                        message: 'Token expired',
+                    },
+                ],
+            };
+        }
+
+        const userIDNum = parseInt(userID);
+        const user = await User.findOneBy({ id: parseInt(userID) });
+
+        if (!user) {
+            return {
+                errors: [
+                    {
+                        field: 'token',
+                        message: 'User no longer exists',
+                    },
+                ],
+            };
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, hashingRounds);
+        await User.update(
+            { id: userIDNum },
+            {
+                password: hashedPassword,
+            }
+        );
+
+        await redis.del(key);
+
+        // log in user after changing password
+        req.session.useID = user.id;
+
+        return { user };
+    }
+
     @Mutation(() => Boolean)
     async forgotPassword(
         @Arg('email') email: string,
