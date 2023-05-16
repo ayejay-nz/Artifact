@@ -12,19 +12,10 @@ import {
 } from 'type-graphql';
 import bcrypt from 'bcrypt';
 import { COOKIE_NAME } from '../constants';
+import { validateRegister } from '../utils/validRegister';
+import { UsernamePasswordInput } from './UsernamePasswordInput';
 
 const hashingRounds = 12;
-const minUsernameLength = 3;
-const minPasswordLength = 10;
-
-@InputType()
-class UsernamePasswordInput {
-    @Field()
-    username: string;
-
-    @Field()
-    password: string;
-}
 
 @ObjectType()
 class FieldError {
@@ -61,26 +52,9 @@ export class UserResolver {
         @Arg('options') options: UsernamePasswordInput,
         @Ctx() { req }: MyContext
     ): Promise<UserResponse> {
-        if (options.username.length < minUsernameLength) {
-            return {
-                errors: [
-                    {
-                        field: 'username',
-                        message: `Username must be at least ${minUsernameLength} characters long`,
-                    },
-                ],
-            };
-        }
-
-        if (options.password.length < minPasswordLength) {
-            return {
-                errors: [
-                    {
-                        field: 'password',
-                        message: `Password must be at least ${minPasswordLength} characters long`,
-                    },
-                ],
-            };
+        const errors = validateRegister(options);
+        if (errors) {
+            return { errors };
         }
 
         const hashedPassword = await bcrypt.hash(
@@ -90,6 +64,7 @@ export class UserResolver {
 
         const user = User.create({
             username: options.username,
+            email: options.email,
             password: hashedPassword,
         });
 
@@ -118,12 +93,15 @@ export class UserResolver {
 
     @Mutation(() => UserResponse)
     async login(
-        @Arg('options') options: UsernamePasswordInput,
+        @Arg('usernameOrEmail') usernameOrEmail: string,
+        @Arg('password') password: string,
         @Ctx() { req }: MyContext
     ): Promise<UserResponse> {
-        const user = await User.findOneBy({
-            username: options.username.toLowerCase(),
-        });
+        const user = await User.findOneBy(
+            usernameOrEmail.includes('@')
+                ? { email: usernameOrEmail }
+                : { username: usernameOrEmail }
+        );
 
         if (!user) {
             return {
@@ -136,10 +114,7 @@ export class UserResolver {
             };
         }
 
-        const validPassword = await bcrypt.compare(
-            options.password,
-            user.password
-        );
+        const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) {
             return {
                 errors: [
