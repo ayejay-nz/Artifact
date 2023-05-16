@@ -11,7 +11,6 @@ import {
     Resolver,
 } from 'type-graphql';
 import bcrypt from 'bcrypt';
-import { RequiredEntityData } from '@mikro-orm/core';
 import { COOKIE_NAME } from '../constants';
 
 const hashingRounds = 12;
@@ -48,21 +47,19 @@ class UserResponse {
 @Resolver()
 export class UserResolver {
     @Query(() => User, { nullable: true })
-    me(@Ctx() { em, req }: MyContext) {
+    me(@Ctx() { req }: MyContext) {
         // you are not logged in
         if (!req.session.userID) {
             return null;
         }
 
-        const user = em.findOne(User, { id: req.session.userID });
-
-        return user;
+        return User.findOneBy({ id: req.session.userID });
     }
 
     @Mutation(() => UserResponse)
     async register(
         @Arg('options') options: UsernamePasswordInput,
-        @Ctx() { em, req }: MyContext
+        @Ctx() { req }: MyContext
     ): Promise<UserResponse> {
         if (options.username.length < minUsernameLength) {
             return {
@@ -91,13 +88,13 @@ export class UserResolver {
             hashingRounds
         );
 
-        const user = em.create(User, {
+        const user = User.create({
             username: options.username,
             password: hashedPassword,
-        } as RequiredEntityData<User>);
+        });
 
         try {
-            await em.persistAndFlush(user);
+            await user.save();
         } catch (err) {
             // duplicate username error
             if (err.code === '23505') {
@@ -122,11 +119,12 @@ export class UserResolver {
     @Mutation(() => UserResponse)
     async login(
         @Arg('options') options: UsernamePasswordInput,
-        @Ctx() { em, req }: MyContext
+        @Ctx() { req }: MyContext
     ): Promise<UserResponse> {
-        const user = await em.findOne(User, {
+        const user = await User.findOneBy({
             username: options.username.toLowerCase(),
         });
+
         if (!user) {
             return {
                 errors: [
