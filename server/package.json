@@ -17,21 +17,26 @@
         "@types/express-session": "1.17.0",
         "@types/ioredis": "^5.0.0",
         "@types/node": "^18.16.1",
+        "@types/uuid": "^9.0.1",
         "nodemon": "^2.0.22",
         "typescript": "^5.0.4"
     },
     "dependencies": {
         "@apollo/server": "^4.7.0",
         "@types/cors": "^2.8.13",
+        "@types/nodemailer": "^6.4.7",
         "bcrypt": "^5.1.0",
         "connect-redis": "^7.0.1",
         "express": "^4.18.2",
         "express-session": "^1.17.3",
         "graphql": "^16.6.0",
+        "ioredis": "^5.3.2",
+        "nodemailer": "^6.9.2",
         "pg": "^8.11.0",
         "reflect-metadata": "^0.1.13",
         "type-graphql": "^2.0.0-beta.1",
-        "typeorm": "^0.3.16"
+        "typeorm": "^0.3.16",
+        "uuid": "^9.0.0"
     },
     "prettier": {
         "tabWidth": 4,

@@ -4,16 +4,17 @@ import {
     Arg,
     Ctx,
     Field,
-    InputType,
     Mutation,
     ObjectType,
     Query,
     Resolver,
 } from 'type-graphql';
 import bcrypt from 'bcrypt';
-import { COOKIE_NAME } from '../constants';
+import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from '../constants';
 import { validateRegister } from '../utils/validRegister';
 import { UsernamePasswordInput } from './UsernamePasswordInput';
+import { sendEmail } from '../utils/sendEmail';
+import { v4 } from 'uuid';
 
 const hashingRounds = 12;
 
@@ -37,6 +38,34 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+    @Mutation(() => Boolean)
+    async forgotPassword(
+        @Arg('email') email: string,
+        @Ctx() { redis }: MyContext
+    ) {
+        const user = await User.findOneBy({ email: email });
+        if (!user) {
+            // email not in database
+            return true; // do not alert the user the email does not exist
+        }
+
+        const token = v4();
+
+        await redis.set(
+            FORGET_PASSWORD_PREFIX + token,
+            user.id,
+            'EX',
+            1000 * 60 * 60 * 24 * 3 // 3 days
+        );
+
+        await sendEmail(
+            email,
+            `<a href="http://localhost:3000/change-password/${token}">reset password</a>`
+        );
+
+        return true;
+    }
+
     @Query(() => User, { nullable: true })
     me(@Ctx() { req }: MyContext) {
         // you are not logged in

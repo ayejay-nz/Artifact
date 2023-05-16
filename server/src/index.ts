@@ -81,6 +81,7 @@ const main = async () => {
             context: async ({ res, req }) => ({
                 req,
                 res,
+                redis,
             }),
         })
     );
