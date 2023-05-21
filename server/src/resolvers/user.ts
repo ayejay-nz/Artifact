@@ -98,7 +98,7 @@ export class UserResolver {
         await redis.del(key);
 
         // log in user after changing password
-        req.session.useID = user.id;
+        req.session.userID = user.id;
 
         return { user };
     }
