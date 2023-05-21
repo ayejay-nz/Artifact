@@ -7,8 +7,10 @@ import {
     InputType,
     Field,
     Ctx,
+    UseMiddleware,
 } from 'type-graphql';
 import { MyContext } from '../types';
+import { isAuth } from '../middleware/isAuth';
 
 @InputType()
 class PostInput {
@@ -32,6 +34,7 @@ export class PostResolver {
     }
 
     @Mutation(() => Post)
+    @UseMiddleware(isAuth)
     async createPost(
         @Arg('input') input: PostInput,
         @Ctx() { req }: MyContext
@@ -43,6 +46,7 @@ export class PostResolver {
     }
 
     @Mutation(() => Post, { nullable: true })
+    @UseMiddleware(isAuth)
     async updatePost(
         @Arg('id') id: number,
         @Arg('title', () => String, { nullable: true }) title: string
@@ -60,6 +64,7 @@ export class PostResolver {
     }
 
     @Mutation(() => Boolean)
+    @UseMiddleware(isAuth)
     async deletePost(@Arg('id') id: number): Promise<boolean> {
         await Post.delete(id);
         return true;
