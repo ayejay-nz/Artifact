@@ -2,15 +2,15 @@ import { Box, Button, Flex } from '@chakra-ui/react';
 import { Formik, Form } from 'formik';
 import React, { useState } from 'react';
 import { InputField } from '../components/InputField';
-import { Wrapper } from '../components/Wrapper';
 import { useForgotPasswordMutation } from '../generated/graphql';
 import NextLink from 'next/link';
+import { Layout } from '../components/Layout';
 
 const ForgotPassword: React.FC<{}> = ({}) => {
     const [complete, setComplete] = useState(false);
     const [forgotPasswordMutation] = useForgotPasswordMutation();
     return (
-        <Wrapper variant="small">
+        <Layout variant="small">
             <Formik
                 initialValues={{ email: '' }}
                 onSubmit={async (values) => {
@@ -56,7 +56,7 @@ const ForgotPassword: React.FC<{}> = ({}) => {
                     )
                 }
             </Formik>
-        </Wrapper>
+        </Layout>
     );
 };
 

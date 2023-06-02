@@ -2,7 +2,7 @@ import { NextPage } from 'next';
 import React, { useState } from 'react';
 import { Field, Form, Formik } from 'formik';
 import { Box, Button, Flex, Link } from '@chakra-ui/react';
-import { Wrapper } from '../../components/Wrapper';
+import { Layout } from '../../components/Layout';
 import { InputField } from '../../components/InputField';
 import {
     MeDocument,
@@ -18,7 +18,7 @@ export const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
     const [changePasswordMutation] = useChangePasswordMutation();
     const [tokenError, setTokenError] = useState('');
     return (
-        <Wrapper variant="small">
+        <Layout variant="small">
             <Formik
                 initialValues={{ newPassword: '' }}
                 onSubmit={async (values, { setErrors }) => {
@@ -88,7 +88,7 @@ export const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
                     </Form>
                 )}
             </Formik>
-        </Wrapper>
+        </Layout>
     );
 };
 
